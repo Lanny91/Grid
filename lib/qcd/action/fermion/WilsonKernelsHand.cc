@@ -307,6 +307,22 @@ Author: paboyle <paboyle@ph.ed.ac.uk>
   result_31-= UChi_11;	\
   result_32-= UChi_12;
 
+// Prefetching
+#if (defined(QPX) && (defined(__clang__) || defined(__GNUC__)))
+  #define PREFETCH_CHIMU_RW(A,rw) \
+    __builtin_prefetch((char *)A, rw, 0); \
+    __builtin_prefetch((char *)A+64, rw, 0); \
+    __builtin_prefetch((char *)A+2*64, rw, 0); \
+    __builtin_prefetch((char *)A+3*64, rw, 0); \
+    __builtin_prefetch((char *)A+4*64, rw, 0); \
+    __builtin_prefetch((char *)A+5*64, rw, 0);
+  #define PREFETCH_CHIMU(A) PREFETCH_CHIMU_RW(A,0)
+  #define PREFETCH_OUT(A) PREFETCH_CHIMU_RW(A,1)
+#else
+  #define PREFETCH_CHIMU(A)
+  #define PREFETCH_OUT(A)
+#endif 
+
 namespace Grid {
 namespace QCD {
 
@@ -373,8 +389,13 @@ WilsonKernels<Impl>::DiracOptHandDhopSite(StencilImpl &st,LebesgueOrder &lo,Doub
 
   int offset,local,perm, ptype;
   StencilEntry *SE;
+  int ent=ss*8;
+  const uint64_t plocal =(uint64_t) & in._odata[0];
+  uint64_t next_chi;
 
   // Xp
+  next_chi=st.GetInfo(ptype,local,perm,Xp,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   SE=st.GetEntry(ptype,Xp,ss);
   offset = SE->_offset;
   local  = SE->_is_local;
@@ -389,6 +410,8 @@ WilsonKernels<Impl>::DiracOptHandDhopSite(StencilImpl &st,LebesgueOrder &lo,Doub
   } else { 
     LOAD_CHI;
   }
+  next_chi = st.GetInfo(ptype,local,perm,Yp,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Xp);
   }
@@ -409,6 +432,8 @@ WilsonKernels<Impl>::DiracOptHandDhopSite(StencilImpl &st,LebesgueOrder &lo,Doub
   } else { 
     LOAD_CHI;
   }
+  next_chi = st.GetInfo(ptype,local,perm,Zp,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Yp);
   }
@@ -430,6 +455,8 @@ WilsonKernels<Impl>::DiracOptHandDhopSite(StencilImpl &st,LebesgueOrder &lo,Doub
   } else { 
     LOAD_CHI;
   }
+  next_chi = st.GetInfo(ptype,local,perm,Tp,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Zp);
   }
@@ -450,6 +477,8 @@ WilsonKernels<Impl>::DiracOptHandDhopSite(StencilImpl &st,LebesgueOrder &lo,Doub
   } else { 
     LOAD_CHI;
   }
+  next_chi = st.GetInfo(ptype,local,perm,Xm,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Tp);
   }
@@ -470,6 +499,8 @@ WilsonKernels<Impl>::DiracOptHandDhopSite(StencilImpl &st,LebesgueOrder &lo,Doub
   } else { 
     LOAD_CHI;
   }
+  next_chi = st.GetInfo(ptype,local,perm,Ym,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Xm);
   }
@@ -491,6 +522,8 @@ WilsonKernels<Impl>::DiracOptHandDhopSite(StencilImpl &st,LebesgueOrder &lo,Doub
   } else { 
     LOAD_CHI;
   }
+  next_chi = st.GetInfo(ptype,local,perm,Zm,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Ym);
   }
@@ -511,6 +544,8 @@ WilsonKernels<Impl>::DiracOptHandDhopSite(StencilImpl &st,LebesgueOrder &lo,Doub
   } else { 
     LOAD_CHI;
   }
+  next_chi = st.GetInfo(ptype,local,perm,Tm,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Zm);
   }
@@ -531,6 +566,7 @@ WilsonKernels<Impl>::DiracOptHandDhopSite(StencilImpl &st,LebesgueOrder &lo,Doub
   } else { 
     LOAD_CHI;
   }
+  PREFETCH_OUT((uint64_t) &out._odata[ss]);
   {
     MULT_2SPIN(Tm);
   }
@@ -613,11 +649,15 @@ void WilsonKernels<Impl>::DiracOptHandDhopSiteDag(StencilImpl &st,LebesgueOrder 
 #define Chimu_31 UChi_11
 #define Chimu_32 UChi_12
 
-
+  int ent=ss*8;
+  const uint64_t plocal =(uint64_t) & in._odata[0];
+  uint64_t next_chi;
   StencilEntry *SE;
   int offset,local,perm, ptype;
   
   // Xp
+  next_chi=st.GetInfo(ptype,local,perm,Xp,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   SE=st.GetEntry(ptype,Xp,ss);
   offset = SE->_offset;
   local  = SE->_is_local;
@@ -632,7 +672,8 @@ void WilsonKernels<Impl>::DiracOptHandDhopSiteDag(StencilImpl &st,LebesgueOrder 
   } else { 
     LOAD_CHI;
   }
-
+  next_chi = st.GetInfo(ptype,local,perm,Yp,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Xp);
   }
@@ -653,6 +694,8 @@ void WilsonKernels<Impl>::DiracOptHandDhopSiteDag(StencilImpl &st,LebesgueOrder 
   } else { 
     LOAD_CHI;
   }
+  next_chi = st.GetInfo(ptype,local,perm,Zp,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Yp);
   }
@@ -674,6 +717,8 @@ void WilsonKernels<Impl>::DiracOptHandDhopSiteDag(StencilImpl &st,LebesgueOrder 
   } else { 
     LOAD_CHI;
   }
+  next_chi = st.GetInfo(ptype,local,perm,Zp,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Zp);
   }
@@ -694,6 +739,8 @@ void WilsonKernels<Impl>::DiracOptHandDhopSiteDag(StencilImpl &st,LebesgueOrder 
   } else { 
     LOAD_CHI;
   }
+  next_chi = st.GetInfo(ptype,local,perm,Xm,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Tp);
   }
@@ -714,6 +761,8 @@ void WilsonKernels<Impl>::DiracOptHandDhopSiteDag(StencilImpl &st,LebesgueOrder 
   } else { 
     LOAD_CHI;
   }
+  next_chi = st.GetInfo(ptype,local,perm,Ym,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Xm);
   }
@@ -734,6 +783,8 @@ void WilsonKernels<Impl>::DiracOptHandDhopSiteDag(StencilImpl &st,LebesgueOrder 
   } else { 
     LOAD_CHI;
   }
+  next_chi = st.GetInfo(ptype,local,perm,Zm,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Ym);
   }
@@ -754,6 +805,8 @@ void WilsonKernels<Impl>::DiracOptHandDhopSiteDag(StencilImpl &st,LebesgueOrder 
   } else { 
     LOAD_CHI;
   }
+  next_chi = st.GetInfo(ptype,local,perm,Tm,ent,plocal); ent++;
+  PREFETCH_CHIMU(next_chi);
   {
     MULT_2SPIN(Zm);
   }
@@ -774,6 +827,7 @@ void WilsonKernels<Impl>::DiracOptHandDhopSiteDag(StencilImpl &st,LebesgueOrder 
   } else { 
     LOAD_CHI;
   }
+  PREFETCH_OUT((uint64_t) &out._odata[ss]);
   {
     MULT_2SPIN(Tm);
   }
