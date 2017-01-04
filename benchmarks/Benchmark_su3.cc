@@ -53,7 +53,7 @@ int main (int argc, char ** argv)
   for(int lat=2;lat<=32;lat+=2){
 
       std::vector<int> latt_size  ({lat*mpi_layout[0],lat*mpi_layout[1],lat*mpi_layout[2],lat*mpi_layout[3]});
-      int vol = latt_size[0]*latt_size[1]*latt_size[2]*latt_size[3];
+      double vol = latt_size[0]*latt_size[1]*latt_size[2]*latt_size[3];
       GridCartesian     Grid(latt_size,simd_layout,mpi_layout);
       //      GridParallelRNG          pRNG(&Grid);      pRNG.SeedRandomDevice();
 
@@ -85,7 +85,7 @@ int main (int argc, char ** argv)
   for(int lat=2;lat<=32;lat+=2){
 
       std::vector<int> latt_size  ({lat*mpi_layout[0],lat*mpi_layout[1],lat*mpi_layout[2],lat*mpi_layout[3]});
-      int vol = latt_size[0]*latt_size[1]*latt_size[2]*latt_size[3];
+      double vol = latt_size[0]*latt_size[1]*latt_size[2]*latt_size[3];
 
       GridCartesian     Grid(latt_size,simd_layout,mpi_layout);
       //      GridParallelRNG          pRNG(&Grid);      pRNG.SeedRandomDevice();
@@ -116,7 +116,7 @@ int main (int argc, char ** argv)
   for(int lat=2;lat<=32;lat+=2){
 
       std::vector<int> latt_size  ({lat*mpi_layout[0],lat*mpi_layout[1],lat*mpi_layout[2],lat*mpi_layout[3]});
-      int vol = latt_size[0]*latt_size[1]*latt_size[2]*latt_size[3];
+      double vol = latt_size[0]*latt_size[1]*latt_size[2]*latt_size[3];
 
       GridCartesian     Grid(latt_size,simd_layout,mpi_layout);
       //      GridParallelRNG          pRNG(&Grid);      pRNG.SeedRandomDevice();
@@ -147,7 +147,7 @@ int main (int argc, char ** argv)
   for(int lat=2;lat<=32;lat+=2){
 
       std::vector<int> latt_size  ({lat*mpi_layout[0],lat*mpi_layout[1],lat*mpi_layout[2],lat*mpi_layout[3]});
-      int vol = latt_size[0]*latt_size[1]*latt_size[2]*latt_size[3];
+      double vol = latt_size[0]*latt_size[1]*latt_size[2]*latt_size[3];
 
       GridCartesian     Grid(latt_size,simd_layout,mpi_layout);
       //      GridParallelRNG          pRNG(&Grid);      pRNG.SeedRandomDevice();
