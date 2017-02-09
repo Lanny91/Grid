@@ -23,5 +23,6 @@ modules_hpp =\
   Modules/MSource/SeqGamma.hpp \
   Modules/MSource/Wall.hpp \
   Modules/MSource/Z2.hpp \
+  Modules/MUtilities/OutputProp.hpp \
   Modules/Quark.hpp
 
