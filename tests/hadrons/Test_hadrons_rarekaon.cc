@@ -25,205 +25,11 @@
  directory.
  *******************************************************************************/
 
-#include <Grid/Hadrons/Application.hpp>
+#include "Test_hadrons.hpp"
 
 using namespace Grid;
 using namespace Hadrons;
 
-/*******************************************************************************
- * Macros to reduce code duplication.
- ******************************************************************************/
-// Useful definitions
-#define ZERO_MOM "0. 0. 0. 0."
-#define INIT_INDEX(s, n) (std::string(s) + "_" + std::to_string(n))
-#define ADD_INDEX(s, n) (s + "_" + std::to_string(n))
-#define LABEL_3PT(s, t1, t2) ADD_INDEX(INIT_INDEX(s, t1), t2)
-#define LABEL_4PT(s, t1, t2, t3) ADD_INDEX(ADD_INDEX(INIT_INDEX(s, t1), t2), t3)
-
-// Wall source/sink macros
-#define NAME_3MOM_WALL_SOURCE(t, mom) ("wall_" + std::to_string(t) + "_" + mom)
-#define NAME_WALL_SOURCE(t) NAME_3MOM_WALL_SOURCE(t, ZERO_MOM)
-
-#define MAKE_3MOM_WALL_PROP(tW, mom, propName, solver)\
-{\
-    std::string srcName = NAME_3MOM_WALL_SOURCE(tW, mom);\
-    makeWallSource(application, srcName, tW, mom);\
-    makePropagator(application, propName, srcName, solver);\
-}
-
-#define MAKE_WALL_PROP(tW, propName, solver)\
-        MAKE_3MOM_WALL_PROP(tW, ZERO_MOM, propName, solver)
-
-// Sequential source macros
-#define MAKE_SEQUENTIAL_PROP(tS, qSrc, mom, propName, solver)\
-{\
-    std::string srcName = ADD_INDEX(qSrc + "_seq", tS);\
-    makeSequentialSource(application, srcName, qSrc, tS, mom);\
-    makePropagator(application, propName, srcName, solver);\
-}
-
-/*******************************************************************************
- * Functions for propagator construction.
- ******************************************************************************/
-
-/*******************************************************************************
- * Name: makeSequentialSource
- * Purpose: Construct sequential source and add to application module.
- * Parameters: application - main application that stores modules.
- *             srcName     - name of source module to create.
- *             qSrc        - Input quark for sequential inversion.
- *             tS          - sequential source timeslice.
- *             mom         - momentum insertion (default is zero).
- * Returns: None.
- ******************************************************************************/
-inline void makeSequentialSource(Application &application, std::string srcName,
-                                 std::string qSrc, unsigned int tS,
-                                 std::string mom = ZERO_MOM)
-{
-    // If the source already exists, don't make the module again.
-    if (!(Environment::getInstance().hasModule(srcName)))
-    {
-        MSource::SeqGamma::Par seqPar;
-        seqPar.q   = qSrc;
-        seqPar.tA  = tS;
-        seqPar.tB  = tS;
-        seqPar.mom = mom;
-        seqPar.gamma = Gamma::Algebra::GammaT;
-        application.createModule<MSource::SeqGamma>(srcName, seqPar);
-    }
-}
-
-/*******************************************************************************
- * Name: makeWallSource
- * Purpose: Construct wall source and add to application module.
- * Parameters: application - main application that stores modules.
- *             srcName     - name of source module to create.
- *             tW          - wall source timeslice.
- *             mom         - momentum insertion (default is zero).
- * Returns: None.
- ******************************************************************************/
-inline void makeWallSource(Application &application, std::string srcName,
-                           unsigned int tW, std::string mom = ZERO_MOM)
-{
-    // If the source already exists, don't make the module again.
-    if (!(Environment::getInstance().hasModule(srcName)))
-    {
-        MSource::Wall::Par wallPar;
-        wallPar.tW  = tW;
-        wallPar.mom = mom;
-        application.createModule<MSource::Wall>(srcName, wallPar);
-    }
-}
-
-/*******************************************************************************
- * Name: makeWallSink
- * Purpose: Wall sink smearing of a propagator.
- * Parameters: application - main application that stores modules.
- *             propName    - name of input propagator.
- *             wallName    - name of smeared propagator.
- *             mom         - momentum insertion (default is zero).
- * Returns: None.
- ******************************************************************************/
-inline void makeWallSink(Application &application, std::string propName,
-                         std::string wallName, std::string mom = ZERO_MOM)
-{
-    // If the propagator has already been smeared, don't smear it again.
-    if (!(Environment::getInstance().hasModule(wallName)))
-    {
-        MSink::Wall::Par wallPar;
-        wallPar.q   = propName;
-        wallPar.mom = mom;
-        application.createModule<MSink::Wall>(wallName, wallPar);
-    }
-}
-
-/*******************************************************************************
- * Name: makePropagator
- * Purpose: Construct source and propagator then add to application module.
- * Parameters: application - main application that stores modules.
- *             propName    - name of propagator module to create.
- *             srcName     - name of source module to use.
- *             solver      - solver to use (default is CG).
- * Returns: None.
- ******************************************************************************/
-inline void makePropagator(Application &application, std::string &propName,
-                           std::string &srcName, std::string &solver)
-{
-    // If the propagator already exists, don't make the module again.
-    if (!(Environment::getInstance().hasModule(propName)))
-    {
-        Quark::Par         quarkPar;
-        quarkPar.source = srcName;
-        quarkPar.solver = solver;
-        application.createModule<Quark>(propName, quarkPar);
-    }
-}
-
-/*******************************************************************************
- * Contraction module creation.
- ******************************************************************************/
-
-/*******************************************************************************
- * Name: mesonContraction
- * Purpose: Create meson contraction module and add to application module.
- * Parameters: application - main application that stores modules.
- *             npt         - specify n-point correlator (for labelling).
- *             q1          - quark propagator 1.
- *             q2          - quark propagator 2.
- *             label       - unique label to construct module name.
- *             mom         - momentum to project (default is zero)
- * Returns: None.
- ******************************************************************************/
-inline void mesonContraction(Application &application, unsigned int npt, 
-                             std::string &q1, std::string &q2,
-                             std::string &label, std::string mom = ZERO_MOM)
-{
-    std::string modName = std::to_string(npt) + "pt_" + label;
-    if (!(Environment::getInstance().hasModule(modName)))
-    {
-        MContraction::Meson::Par mesPar;
-        mesPar.output = std::to_string(npt) + "pt/" + label;
-        mesPar.q1 = q1;
-        mesPar.q2 = q2;
-        mesPar.mom = mom;
-        mesPar.gammas = "<Gamma5 Gamma5>";
-        application.createModule<MContraction::Meson>(modName, mesPar);
-    }
- }
-
-/*******************************************************************************
- * Name: weakContraction[Eye,NonEye]
- * Purpose: Create Weak Hamiltonian contraction module for Eye/NonEye topology
- *          and add to application module.
- * Parameters: application - main application that stores modules.
- *             npt         - specify n-point correlator (for labelling).
- *             q1          - quark propagator 1.
- *             q2          - quark propagator 2.
- *             q3          - quark propagator 3.
- *             q4          - quark propagator 4.
- *             label       - unique label to construct module name.
- * Returns: None.
- ******************************************************************************/
-#define HW_CONTRACTION(top) \
-inline void weakContraction##top(Application &application, unsigned int npt,\
-                                 std::string &q1, std::string &q2, \
-                                 std::string &q3, std::string &q4, \
-                                 std::string &label)\
-{\
-    std::string modName = std::to_string(npt) + "pt_" + label;\
-    if (!(Environment::getInstance().hasModule(modName)))\
-    {\
-        MContraction::WeakHamiltonian##top::Par weakPar;\
-        weakPar.output = std::to_string(npt) + "pt/" + label;\
-        weakPar.q1 = q1;\
-        weakPar.q2 = q2;\
-        weakPar.q3 = q3;\
-        weakPar.q4 = q4;\
-        application.createModule<MContraction::WeakHamiltonian##top>(modName, weakPar);\
-    }\
-}
-HW_CONTRACTION(Eye)    // weakContractionEye
-HW_CONTRACTION(NonEye) // weakContractionNonEye
 
 int main(int argc, char *argv[])
 {
@@ -345,6 +151,7 @@ int main(int argc, char *argv[])
         MAKE_3MOM_WALL_PROP(tpi, pmom, q_pil_p, solvers[light]);
 
         // Wall sink-smeared propagators.
+        /*
         std::string q_Kl_0_W  = q_Kl_0 + "_W";
         std::string q_Ks_k_W  = q_Ks_k + "_W";
         std::string q_Ks_p_W  = q_Ks_p + "_W";
@@ -356,7 +163,7 @@ int main(int argc, char *argv[])
         makeWallSink(application, q_Ks_p, q_Ks_p_W, pmom);
         makeWallSink(application, q_pil_0, q_pil_0_W);
         makeWallSink(application, q_pil_k, q_pil_k_W, kmom);
-        makeWallSink(application, q_pil_p, q_pil_p_W, pmom);
+        makeWallSink(application, q_pil_p, q_pil_p_W, pmom);*/
 
         /***********************************************************************
          * CONTRACTIONS: pi and K 2pt contractions with mom = p, k.
