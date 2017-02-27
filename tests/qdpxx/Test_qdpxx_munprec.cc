@@ -554,10 +554,9 @@ void calc_grid(ChromaAction action,Grid::QCD::LatticeGaugeField & Umu, Grid::QCD
       Ddwf.Mdag(src,res);  
     else if (dag == 2){
       Ddwf.Mdag(src,tmp);
-      src=tmp;
       Grid::MdagMLinearOperator<Grid::QCD::DomainWallFermionD,Grid::QCD::LatticeFermionD> HermOp(Ddwf);
       Grid::ConjugateGradient<Grid::QCD::LatticeFermionD> CG(1.0e-16,10000);
-      CG(HermOp,src,res);
+      CG(HermOp,tmp,res);
 
       HermOp.HermOp(res,tmp);
       tmp = tmp - src;
