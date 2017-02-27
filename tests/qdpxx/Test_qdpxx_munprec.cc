@@ -422,22 +422,39 @@ int main (int argc,char **argv )
     std::cout << "*****************************"<<std::endl;
     std::cout << "Action "<<ActionName[i]<<std::endl;
     std::cout << "*****************************"<<std::endl;
-    for(int dag=0;dag<2;dag++) {
+    for(int dag=0;dag<3;dag++) {
 
 
       std::cout << "Dag =  "<<dag<<std::endl;
       
       calc_grid  (ActionList[i],lat,src,res_grid,dag);
       
-      std::cout << "Norm of Grid DWF multiply "<<Grid::norm2(res_grid)<<std::endl;
+      if (ActionList[i] == HtCayleyTanh && (dag == 2)){
+
+        std::cout << "Norm of source " << Grid::norm2(src)<<std::endl;
+        std::cout << "Norm of Grid DWF inversion "<<Grid::norm2(res_grid)<<std::endl;
+
+        calc_chroma(ActionList[i],lat,res_grid,res_chroma,dag); 
+
+        std::cout << "Norm of chroma DWF multiply "<<Grid::norm2(res_chroma)<<std::endl;
+
+        res_chroma=res_chroma - src;
+        std::cout << "Norm of difference "<<Grid::norm2(res_chroma)<<std::endl;
+
+      }
+
+      else if (dag != 2) {
+        std::cout << "Norm of Grid DWF multiply "<<Grid::norm2(res_grid)<<std::endl;
       
-      calc_chroma(ActionList[i],lat,src,res_chroma,dag);
+        calc_chroma(ActionList[i],lat,src,res_chroma,dag);
       
-      std::cout << "Norm of chroma DWF multiply "<<Grid::norm2(res_chroma)<<std::endl;
+        std::cout << "Norm of chroma DWF multiply "<<Grid::norm2(res_chroma)<<std::endl;
       
-      res_chroma=res_chroma - res_grid;
-      
-      std::cout << "Norm of difference "<<Grid::norm2(res_chroma)<<std::endl;
+        res_chroma=res_chroma - res_grid;
+
+        std::cout << "Norm of difference "<<Grid::norm2(res_chroma)<<std::endl;
+
+      } 
     }
   }
 
@@ -471,7 +488,7 @@ void calc_chroma(ChromaAction action,Grid::QCD::LatticeGaugeField & lat, Grid::Q
 
   printf("Calling Chroma Linop\n"); fflush(stdout);
 
-  if ( dag ) 
+  if ( dag == 1 ) 
     (*linop)(check,psi,Chroma::MINUS);
   else
     (*linop)(check,psi,Chroma::PLUS);
@@ -499,8 +516,18 @@ void calc_grid(ChromaAction action,Grid::QCD::LatticeGaugeField & Umu, Grid::QCD
   Grid::GridParallelRNG          RNG4(UGrid);  RNG4.SeedFixedIntegers(seeds4);
   Grid::GridParallelRNG          RNG5(FGrid);  RNG5.SeedFixedIntegers(seeds5);
 
+  Grid::QCD::LatticeFermion tmp(FGrid);
   Grid::gaussian(RNG5,src);
   Grid::gaussian(RNG5,res);
+  Grid::gaussian(RNG5,tmp);
+
+  Grid::QCD::Gamma G5(Grid::QCD::Gamma::Algebra::Gamma5);
+  Grid::QCD::axpby_ssp_pplus(src, 0., src, 1., src, 0, 0);
+  Grid::QCD::axpby_ssp_pminus(src, 0., src, 1., src, Ls-1, Ls-1);
+  for (int ii = 0; ii < Ls - 1; ++ii)
+  {
+    Grid::QCD::axpby_ssp_pplus(src, 0., src, 0., src, ii, ii);
+  }
 
   Grid::QCD::SU3::HotConfiguration(RNG4,Umu);
 
@@ -519,14 +546,28 @@ void calc_grid(ChromaAction action,Grid::QCD::LatticeGaugeField & Umu, Grid::QCD
 
   if ( action == HtCayleyTanh ) { 
 
-    Grid::QCD::DomainWallFermionR Ddwf(Umu,*FGrid,*FrbGrid,*UGrid,*UrbGrid,_mass,_M5);
+    Grid::QCD::DomainWallFermionD Ddwf(Umu,*FGrid,*FrbGrid,*UGrid,*UrbGrid,_mass,_M5);
 
     std::cout << Grid::GridLogMessage <<" Calling domain wall multiply "<<std::endl;
-
-    if ( dag ) 
+    
+    if ( dag == 1) 
       Ddwf.Mdag(src,res);  
+    else if (dag == 2){
+      Ddwf.Mdag(src,tmp);
+      src=tmp;
+      Grid::MdagMLinearOperator<Grid::QCD::DomainWallFermionD,Grid::QCD::LatticeFermionD> HermOp(Ddwf);
+      Grid::ConjugateGradient<Grid::QCD::LatticeFermionD> CG(1.0e-16,10000);
+      CG(HermOp,src,res);
+
+      HermOp.HermOp(res,tmp);
+      tmp = tmp - src;
+      std::cout << Grid::GridLogMessage << " Check solution is OK with Grid" << std::endl;
+      std::cout << Grid::GridLogMessage << " norm2(D*sol - src) = " << Grid::norm2(tmp) << std::endl;
+
+    }
     else 
       Ddwf.M(src,res);  
+
     return;
 
   } 
