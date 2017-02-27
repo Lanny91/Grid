@@ -558,7 +558,7 @@ void calc_grid(ChromaAction action,Grid::QCD::LatticeGaugeField & Umu, Grid::QCD
       Grid::ConjugateGradient<Grid::QCD::LatticeFermionD> CG(1.0e-16,10000);
       CG(HermOp,tmp,res);
 
-      HermOp.HermOp(res,tmp);
+      HermOp.Op(res,tmp);
       tmp = tmp - src;
       std::cout << Grid::GridLogMessage << " Check solution is OK with Grid" << std::endl;
       std::cout << Grid::GridLogMessage << " norm2(D*sol - src) = " << Grid::norm2(tmp) << std::endl;
