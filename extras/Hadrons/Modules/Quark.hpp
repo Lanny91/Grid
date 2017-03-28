@@ -67,7 +67,8 @@ public:
     GRID_SERIALIZABLE_CLASS_MEMBERS(QuarkPar,
                                     std::string, source,
                                     std::string, solver,
-                                    std::string, gauge);   // gauge field is only needed for chroma regression test.
+                                    std::string, gauge,
+                                    double     , M5);   // gauge field and M5 only needed for chroma regression test.
 };
 
 template <typename FImpl>
@@ -201,7 +202,7 @@ void TQuark<FImpl>::execute(void)
           // Quick and messy implementation - needs improving.
           DWF_parms dwf_par;
           dwf_par.Ls = Ls_;
-          dwf_par.M5 = 1.8;
+          dwf_par.M5 = par().M5;
           dwf_par.mobius_scale = 2.0;
           dwf_par.mq = 0.04;
           dwf_par.zolo_hi = 1.0;
