@@ -28,6 +28,7 @@ See the full license in the file "LICENSE" in the top level distribution directo
 /*  END LEGAL */
 
 #include <Grid/Hadrons/Application.hpp>
+#include <Grid/Hadrons/ChromaRegression.hpp>
 
 using namespace Grid;
 using namespace QCD;
@@ -61,7 +62,16 @@ int main(int argc, char *argv[])
     HadronsLogIterative.Active(GridLogIterative.isActive());
     HadronsLogDebug.Active(GridLogDebug.isActive());
     LOG(Message) << "Grid initialized" << std::endl;
-    
+
+    #ifdef CHROMA_REGRESSION
+      /*************************************************************************
+       * Setup QDP
+       ************************************************************************/
+      std::vector<int> dimensions(Nd);
+      dimensions = GridDefaultLatt();
+      init_chroma(dimensions, &argc, &argv);
+    #endif
+
     // execution
     Application application(parameterFileName);
     

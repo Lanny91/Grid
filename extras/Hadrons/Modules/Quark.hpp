@@ -33,6 +33,7 @@ See the full license in the file "LICENSE" in the top level distribution directo
 #include <Grid/Hadrons/Global.hpp>
 #include <Grid/Hadrons/Module.hpp>
 #include <Grid/Hadrons/ModuleFactory.hpp>
+#include <Grid/Hadrons/ChromaRegression.hpp>
 
 BEGIN_HADRONS_NAMESPACE
 
@@ -65,7 +66,8 @@ class QuarkPar: Serializable
 public:
     GRID_SERIALIZABLE_CLASS_MEMBERS(QuarkPar,
                                     std::string, source,
-                                    std::string, solver);
+                                    std::string, solver,
+                                    std::string, gauge);   // gauge field is only needed for chroma regression test.
 };
 
 template <typename FImpl>
@@ -105,7 +107,7 @@ TQuark<FImpl>::TQuark(const std::string name)
 template <typename FImpl>
 std::vector<std::string> TQuark<FImpl>::getInput(void)
 {
-    std::vector<std::string> in = {par().source, par().solver};
+    std::vector<std::string> in = {par().source, par().solver, par().gauge};
     
     return in;
 }
@@ -183,6 +185,31 @@ void TQuark<FImpl>::execute(void)
         sol = zero;
         solver(sol, source);
         FermToProp(prop, sol, s, c);
+
+        // Output some checks: source norm, sol norm.
+        LOG(Message) << "norm(src)  = " << sqrt(norm2(source)) << std::endl;
+        LOG(Message) << "norm2(src) = " << norm2(source) << std::endl;
+        LOG(Message) << "norm(sol)  = " << sqrt(norm2(sol)) << std::endl;
+        LOG(Message) << "norm2(sol) = " << norm2(sol) << std::endl;
+
+        // Check against chroma.
+        #ifdef CHROMA_REGRESSION
+          LOG(Message) << "Regressing to Chroma" << std::endl;
+          FermionField check(env().getGrid(Ls_));
+          auto &U = *env().template getObject<LatticeGaugeField>(par().gauge);
+          
+          // Quick and messy implementation - needs improving.
+          DWF_parms dwf_par;
+          dwf_par.Ls = Ls_;
+          dwf_par.M5 = 1.8;
+          dwf_par.mobius_scale = 2.0;
+          dwf_par.mq = 0.04;
+          dwf_par.zolo_hi = 1.0;
+          dwf_par.zolo_lo = 1.0;
+          LOG(Message) << "Pass solution to Chroma" << std::endl;
+          calc_chroma(HtCayleyTanh, U, source, sol, check, 0, dwf_par);
+        #endif
+
         // create 4D propagators from 5D one if necessary
         if (Ls_ > 1)
         {
@@ -192,6 +219,23 @@ void TQuark<FImpl>::execute(void)
             FermToProp(p4d, tmp, s, c);
         }
     }
+
+    // Output some checks.
+    std::vector<int> test_site(Nd, 0);
+    PropagatorField &p4 = *env().template getObject<PropagatorField>(getName());
+    typename SitePropagator::scalar_object pbp;
+    Gamma g5(Gamma::Algebra::Gamma5);
+
+    peekSite(pbp,p4,test_site);
+
+    std::cout << "0 0 0 0:  tr G    = " << trace(pbp) << std::endl;
+    std::cout << "0 0 0 0:  tr g5 G = " << trace(pbp*g5) << std::endl;
+
+    // Output norm
+    std::cout << "Norm of propagator  '" << getName() << "' is " 
+              << sqrt(norm2(p4)) << std::endl;
+    std::cout << "Norm2 of propagator '" << getName() << "' is " 
+              << norm2(p4) << std::endl;
 }
 
 END_HADRONS_NAMESPACE
