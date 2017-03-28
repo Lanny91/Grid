@@ -45,4 +45,5 @@ See the full license in the file "LICENSE" in the top level distribution directo
 #include <Grid/Hadrons/Modules/MSource/Z2.hpp>
 #include <Grid/Hadrons/Modules/MUtilities/CompareProps.hpp>
 #include <Grid/Hadrons/Modules/MUtilities/OutputProp.hpp>
+#include <Grid/Hadrons/Modules/FreeQuark.hpp>
 #include <Grid/Hadrons/Modules/Quark.hpp>

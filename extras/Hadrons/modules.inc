@@ -25,5 +25,6 @@ modules_hpp =\
   Modules/MSource/Z2.hpp \
   Modules/MUtilities/CompareProps.hpp \
   Modules/MUtilities/OutputProp.hpp \
+  Modules/FreeQuark.hpp \
   Modules/Quark.hpp
 
