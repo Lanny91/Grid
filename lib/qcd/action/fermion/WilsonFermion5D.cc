@@ -693,11 +693,11 @@ void WilsonFermion5D<Impl>::MomentumSpacePropagatorHw(FermionField &out,const Fe
 }
 
 template <class Impl>
-void WilsonFermion5D<Impl>::ContractConservedCurrent(PropagatorField &q_in_1,
-                                                     PropagatorField &q_in_2,
-                                                     PropagatorField &q_out,
-                                                     Current curr_type,
-                                                     unsigned int mu)
+void WilsonFermion5D<Impl>::ContractConservedCurrentHt(PropagatorField &q_in_1,
+                                                       PropagatorField &q_in_2,
+                                                       PropagatorField &q_out,
+                                                       Current curr_type,
+                                                       unsigned int mu)
 {
     conformable(q_in_1._grid, FermionGrid());
     conformable(q_in_1._grid, q_in_2._grid);
@@ -749,13 +749,13 @@ void WilsonFermion5D<Impl>::ContractConservedCurrent(PropagatorField &q_in_1,
 
 
 template <class Impl>
-void WilsonFermion5D<Impl>::SeqConservedCurrent(PropagatorField &q_in, 
-                                                PropagatorField &q_out,
-                                                Current curr_type, 
-                                                unsigned int mu,
-                                                std::vector<Real> mom,
-                                                unsigned int tmin, 
-                                                unsigned int tmax)
+void WilsonFermion5D<Impl>::SeqConservedCurrentHt(PropagatorField &q_in, 
+                                                  PropagatorField &q_out,
+                                                  Current curr_type, 
+                                                  unsigned int mu,
+                                                  std::vector<Real> mom,
+                                                  unsigned int tmin, 
+                                                  unsigned int tmax)
 {
     conformable(q_in._grid, FermionGrid());
     conformable(q_in._grid, q_out._grid);

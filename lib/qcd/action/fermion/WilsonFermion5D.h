@@ -217,18 +217,40 @@ namespace QCD {
     ///////////////////////////////////////////////////////////////
     // Conserved current utilities
     ///////////////////////////////////////////////////////////////
-    void ContractConservedCurrent(PropagatorField &q_in_1,
+    void ContractConservedCurrentHt(PropagatorField &q_in_1,
+                                    PropagatorField &q_in_2,
+                                    PropagatorField &q_out,
+                                    Current curr_type, 
+                                    unsigned int mu);
+    void SeqConservedCurrentHt(PropagatorField &q_in,
+                               PropagatorField &q_out,
+                               Current curr_type,
+                               unsigned int mu,
+                               std::vector<Real> mom,
+                               unsigned int tmin,
+                               unsigned int tmax);
+
+    // This implementation may be overwritten by other 5D actions.
+    virtual void ContractConservedCurrent(PropagatorField &q_in_1,
                                   PropagatorField &q_in_2,
                                   PropagatorField &q_out,
-                                  Current curr_type, 
-                                  unsigned int mu);
-    void SeqConservedCurrent(PropagatorField &q_in,
-                             PropagatorField &q_out,
-                             Current curr_type,
-                             unsigned int mu,
-                             std::vector<Real> mom,
-                             unsigned int tmin,
-                             unsigned int tmax);
+                                  Current curr_type,
+                                  unsigned int mu)
+    {
+        this->ContractConservedCurrentHt(q_in_1, q_in_2, q_out, 
+                                         curr_type, mu);
+    };
+    virtual void SeqConservedCurrent(PropagatorField &q_in,
+                                     PropagatorField &q_out,
+                                     Current curr_type,
+                                     unsigned int mu, 
+                                     std::vector<Real> mom,
+                                     unsigned int tmin,
+                                     unsigned int tmax)
+    {
+        this->SeqConservedCurrentHt(q_in, q_out, curr_type,
+                                    mu, mom, tmin, tmax);
+    };
   };
 
 }}
