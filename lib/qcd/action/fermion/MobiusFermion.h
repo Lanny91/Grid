@@ -30,6 +30,7 @@ Author: Peter Boyle <paboyle@ph.ed.ac.uk>
 #define  GRID_QCD_MOBIUS_FERMION_H
 
 #include <Grid/qcd/action/fermion/FermionCore.h>
+#include <Grid/qcd/action/fermion/CayleyFermion5D.h>
 
 namespace Grid {
 
@@ -41,7 +42,6 @@ namespace Grid {
     public:
      INHERIT_IMPL_TYPES(Impl);
     public:
-
       virtual void   Instantiatable(void) {};
       // Constructors
       MobiusFermion(GaugeField &_Umu,
@@ -50,28 +50,27 @@ namespace Grid {
 		    GridCartesian         &FourDimGrid,
 		    GridRedBlackCartesian &FourDimRedBlackGrid,
 		    RealD _mass,RealD _M5,
-		    RealD b, RealD c,const ImplParams &p= ImplParams()) : 
+		    RealD b, RealD c,const ImplParams &p= ImplParams());
       
-      CayleyFermion5D<Impl>(_Umu,
-			    FiveDimGrid,
-			    FiveDimRedBlackGrid,
-			    FourDimGrid,
-			    FourDimRedBlackGrid,_mass,_M5,p)
-
-      {
-	RealD eps = 1.0;
-
-	std::cout<<GridLogMessage << "MobiusFermion (b="<<b<<",c="<<c<<") with Ls= "<<this->Ls<<" Tanh approx"<<std::endl;
-	Approx::zolotarev_data *zdata = Approx::higham(eps,this->Ls);// eps is ignored for higham
-	assert(zdata->n==this->Ls);
-	
-	// Call base setter
-	this->SetCoefficientsTanh(zdata,b,c);
-
-	Approx::zolotarev_free(zdata);
- 
-      }
-
+      // Conserved Current utilities
+      void ContractConservedCurrent(PropagatorField &q_in_1,
+                                    PropagatorField &q_in_2,
+                                    PropagatorField &q_out,
+                                    Current curr_type,
+                                    unsigned int mu,
+                                    PropagatorField *src);
+      void SeqConservedCurrent(PropagatorField &q_in,
+                               PropagatorField &q_out,
+                               Current curr_type,
+                               unsigned int mu, 
+                               std::vector<Real> mom,
+                               unsigned int tmin,
+                               unsigned int tmax,
+                               PropagatorField *src);
+    private:
+      void ConservedCurrentSetup(PropagatorField &q_in,
+                                 PropagatorField &q_out,
+                                 PropagatorField &src);
     };
 
   }

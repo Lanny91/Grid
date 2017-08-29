@@ -353,7 +353,8 @@ void ImprovedStaggeredFermion5D<Impl>::ContractConservedCurrent(PropagatorField 
                                                          PropagatorField &q_in_2,
                                                          PropagatorField &q_out,
                                                          Current curr_type,
-                                                         unsigned int mu)
+                                                         unsigned int mu,
+                                                         PropagatorField *src)
 {
     assert(0);
 }
@@ -365,7 +366,8 @@ void ImprovedStaggeredFermion5D<Impl>::SeqConservedCurrent(PropagatorField &q_in
                                                           unsigned int mu, 
                                                           std::vector<Real> mom,
                                                           unsigned int tmin,
-                                                          unsigned int tmax)
+                                                          unsigned int tmax,
+                                                          PropagatorField *src)
 {
     assert(0);
 }

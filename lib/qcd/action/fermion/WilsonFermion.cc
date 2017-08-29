@@ -355,7 +355,8 @@ void WilsonFermion<Impl>::ContractConservedCurrent(PropagatorField &q_in_1,
                                                    PropagatorField &q_in_2,
                                                    PropagatorField &q_out,
                                                    Current curr_type,
-                                                   unsigned int mu)
+                                                   unsigned int mu,
+                                                   PropagatorField *src)
 {
     Gamma g5(Gamma::Algebra::Gamma5);
     conformable(_grid, q_in_1._grid);
@@ -388,7 +389,8 @@ void WilsonFermion<Impl>::SeqConservedCurrent(PropagatorField &q_in,
                                               unsigned int mu,
                                               std::vector<Real> mom,
                                               unsigned int tmin, 
-                                              unsigned int tmax)
+                                              unsigned int tmax,
+                                              PropagatorField *src)
 {
     conformable(_grid, q_in._grid);
     conformable(_grid, q_out._grid);

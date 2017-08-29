@@ -167,14 +167,16 @@ namespace QCD {
                                   PropagatorField &q_in_2,
                                   PropagatorField &q_out,
                                   Current curr_type,
-                                  unsigned int mu);
+                                  unsigned int mu,
+                                  PropagatorField *src);
     void SeqConservedCurrent(PropagatorField &q_in,
                              PropagatorField &q_out,
                              Current curr_type,
                              unsigned int mu, 
                              std::vector<Real> mom,
                              unsigned int tmin,
-                             unsigned int tmax);
+                             unsigned int tmax,
+                             PropagatorField *src);
   };
 
 }}
